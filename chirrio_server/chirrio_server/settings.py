@@ -29,6 +29,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
+    "chirrio",
     "django.contrib.auth",
     "django.contrib.admin",
     "django.contrib.auth",
