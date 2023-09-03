@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+from django.core.management.commands.runserver import Command
+
+Command.default_port = '8080'        # <-- Your port
+Command.default_addr = '127.0.0.1'   # <-- Your address
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
