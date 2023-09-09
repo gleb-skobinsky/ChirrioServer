@@ -5,15 +5,6 @@ from django.utils.translation import gettext_lazy as lazy
 from uuid import uuid4
 
 
-# Create your models here.
-
-class Role(models.Model):
-    role_name = models.CharField(max_length=150)
-
-    def __str__(self):
-        return self.role_name
-
-
 class CustomUserManager(BaseUserManager):
     """
     Custom user model manager where email is the unique identifiers
@@ -27,9 +18,7 @@ class CustomUserManager(BaseUserManager):
         if not email:
             raise ValueError(lazy("The Email must be set"))
         email = self.normalize_email(email)
-        role = Role.objects.get(role_name="Client")
         user = self.model(
-            role=role,
             email=email,
             is_staff=is_staff,
             is_superuser=is_superuser,
@@ -72,7 +61,6 @@ class ChirrioUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(lazy("email address"), unique=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    role = models.ForeignKey(Role, on_delete=models.PROTECT, default=1)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
