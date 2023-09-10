@@ -16,6 +16,7 @@ cryptography==41.0.3
 daphne==4.0.0
 Django==4.2.4
 frozenlist==1.4.0
+gunicorn==21.2.0
 hyperlink==21.0.0
 idna==3.4
 incremental==22.10.0

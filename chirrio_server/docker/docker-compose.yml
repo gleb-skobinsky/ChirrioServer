@@ -1,20 +1,42 @@
 services:
   web:
     container_name: chirrio_server
+    env_file: ../.env
+    volumes:
+      - .:/chirrio_server
+      - static_volume:/home/app/webapp/static
+    depends_on:
+      - db
+    build: ../
+    command: sh -c "python manage.py makemigrations &&
+      python manage.py migrate &&
+      gunicorn chirrio_server.wsgi:application --bind 0.0.0.0:8000"
+    image: chirrio_image
+    expose:
+      - 8000
+    ports:
+      - 8000:8000
 
   db:
     container_name: chirrio_db
+    env_file: ../.env
     image: postgres:14.5-alpine
     restart: always
     environment:
-      POSTGRES_PASSWORD: example
+#      - POSTGRES_PASSWORD=chirriopass2030
+      - POSTGRES_PASSWORD=chirriopass2030
+      - POSTGRES_DB=postgres
+      - PGPORT=5432
+      - POSTGRES_USER=postgres
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: [“CMD-SHELL”, “pg_isready”]
+      test: [ “CMD-SHELL”, “pg_isready” ]
       interval: 1s
       timeout: 5s
       retries: 10
+    ports:
+      - "5432:5432"
 
   adminer:
     container_name: chirrio_adminer
@@ -23,5 +45,8 @@ services:
     ports:
       - 8080:8080
 
+
 volumes:
   pgdata:
+  static_volume:
+  redis:
