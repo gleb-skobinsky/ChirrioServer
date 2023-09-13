@@ -10,9 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
-from pathlib import Path
 import os
+from pathlib import Path
+
 from dotenv import load_dotenv
+
+GLOBAL_PORT = os.environ.get("APP_PORT")
+GLOBAL_HOST = os.environ.get("APP_HOST")
 
 load_dotenv()
 
@@ -28,9 +32,9 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["127.0.0.1", GLOBAL_HOST]
 
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8080']
+CSRF_TRUSTED_ORIGINS = [f"http://127.0.0.1:{GLOBAL_PORT}", f"http://{GLOBAL_HOST}:{GLOBAL_PORT}"]
 
 # Application definition
 
