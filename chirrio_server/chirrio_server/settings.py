@@ -17,6 +17,7 @@ from dotenv import load_dotenv
 
 GLOBAL_PORT = os.environ.get("APP_PORT")
 GLOBAL_HOST = os.environ.get("APP_HOST")
+LOCALHOST_FULL = f"http://127.0.0.1:{GLOBAL_PORT}"
 
 load_dotenv()
 
@@ -34,7 +35,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["127.0.0.1", GLOBAL_HOST]
 
-CSRF_TRUSTED_ORIGINS = [f"http://127.0.0.1:{GLOBAL_PORT}", f"http://{GLOBAL_HOST}:{GLOBAL_PORT}"]
+CSRF_TRUSTED_ORIGINS = [LOCALHOST_FULL, f"http://{GLOBAL_HOST}:{GLOBAL_PORT}"]
 
 # Application definition
 
