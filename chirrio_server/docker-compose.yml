@@ -7,6 +7,8 @@ services:
       - "443:443"
     volumes:
       - static_volume:/home/app/webapp/static
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
     depends_on:
       - web
     restart: "on-failure"
@@ -14,6 +16,9 @@ services:
       - server_net
   certbot:
     image: certbot/certbot
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
   web:
     container_name: chirrio_server
     volumes:
