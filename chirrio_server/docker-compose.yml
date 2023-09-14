@@ -3,7 +3,7 @@ services:
     container_name: chirrio_nginx
     build: ./nginx
     ports:
-      - "8081:80"
+      - "80:80"
       - "443:443"
     volumes:
       - static_volume:/home/app/webapp/static
