@@ -33,7 +33,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["127.0.0.1", GLOBAL_HOST]
 
-CSRF_TRUSTED_ORIGINS = [f"http://127.0.0.1:{GLOBAL_PORT}", f"http://{GLOBAL_HOST}:{GLOBAL_PORT}"]
+CSRF_TRUSTED_ORIGINS = [f"http://127.0.0.1:{GLOBAL_PORT}", f"https://{GLOBAL_HOST}:{GLOBAL_PORT}"]
 
 # Application definition
 
