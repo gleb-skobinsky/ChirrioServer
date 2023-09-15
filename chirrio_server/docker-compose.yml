@@ -37,7 +37,6 @@ services:
     networks:
       - server_net
     environment:
-      - APP_PORT=${APP_PORT}
       - APP_HOST=${APP_HOST}
 
   db:
