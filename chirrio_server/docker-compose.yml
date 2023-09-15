@@ -56,13 +56,6 @@ services:
     networks:
       - server_net
 
-  adminer:
-    container_name: chirrio_adminer
-    image: adminer
-    restart: always
-    ports:
-      - 8080:8080
-
 volumes:
   pgdata:
   static_volume:
