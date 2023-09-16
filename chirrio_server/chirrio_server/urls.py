@@ -25,12 +25,12 @@ urlpatterns = [
     path("", index),
     path("chat/", include("chat.urls")),
     path("admin/", admin.site.urls),
-    path('token/',
+    path("token/",
          jwt_views.TokenObtainPairView.as_view(),
-         name='token_obtain_pair'),
-    path('token/refresh/',
+         name="token_obtain_pair"),
+    path("token/refresh/",
          jwt_views.TokenRefreshView.as_view(),
-         name='token_refresh')
+         name="token_refresh")
 ]
 
 urlpatterns += staticfiles_urlpatterns()
