@@ -1,8 +1,9 @@
+from uuid import uuid4
+
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from django.utils.translation import gettext_lazy as lazy
-from uuid import uuid4
 
 
 class CustomUserManager(BaseUserManager):
@@ -11,7 +12,7 @@ class CustomUserManager(BaseUserManager):
     for authentication instead of usernames.
     """
 
-    def _create_user(self, email, password, is_staff, is_superuser, **extra_fields):
+    def _create_user(self, email, password, is_staff, is_superuser, first_name, last_name, **extra_fields):
         """
         Create and save a User with the given email and password.
         """
@@ -20,6 +21,8 @@ class CustomUserManager(BaseUserManager):
         email = self.normalize_email(email)
         user = self.model(
             email=email,
+            first_name=first_name,
+            last_name=last_name,
             is_staff=is_staff,
             is_superuser=is_superuser,
             **extra_fields,
@@ -29,13 +32,15 @@ class CustomUserManager(BaseUserManager):
         return user
 
     def create_user(
-            self, email, password=None, is_staff=False, is_superuser=False, **extra_fields
+            self, email, password=None, is_staff=False, is_superuser=False, first_name="", last_name="", **extra_fields
     ):
         return self._create_user(
             email=email,
             password=password,
             is_staff=is_staff,
             is_superuser=is_superuser,
+            first_name=first_name,
+            last_name=last_name,
             **extra_fields,
         )
 

@@ -5,12 +5,16 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from chat.models import ChirrioUser
 
 
 def index(request: HttpRequest) -> JsonResponse:
     return JsonResponse(data={"message": "Hello world"})
+
+
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    return str(refresh), str(refresh.access_token)
 
 
 class GetUser(APIView):
@@ -45,4 +49,28 @@ class LogoutView(APIView):
             token.blacklist()
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class SignupView(APIView):
+
+    def post(self, request):
+        try:
+            email = request.data["email"]
+            first_name = request.data["firstName"]
+            last_name = request.data["lastName"]
+            password = request.data["password"]
+            user = ChirrioUser.objects.create_user(email=email, first_name=first_name, last_name=last_name,
+                                                   password=password)
+            access_token, refresh_token = get_tokens_for_user(user)
+            return JsonResponse(
+                data={
+                    "email": user.email,
+                    "firstName": user.first_name,
+                    "lastName": user.last_name,
+                    "accessToken": access_token,
+                    "refreshToken": refresh_token
+                }
+            )
+        except KeyError:
             return Response(status=status.HTTP_400_BAD_REQUEST)
