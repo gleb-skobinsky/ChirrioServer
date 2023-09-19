@@ -78,6 +78,7 @@ class ChirrioUser(AbstractBaseUser, PermissionsMixin):
 
 class ChatRoom(models.Model):
     chatroom_uid = models.CharField(max_length=36, default=str(uuid4()))
+    chatroom_name = models.CharField(max_length=1024, default="")
     last_message = models.CharField(max_length=2048, default="")
     last_sent_user_id = models.ForeignKey(ChirrioUser, on_delete=models.PROTECT, default=1)
 
