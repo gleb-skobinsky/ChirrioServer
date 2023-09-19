@@ -17,6 +17,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 GLOBAL_HOST = os.environ.get("APP_HOST")
+IP_BASED_HOST = os.environ.get("APP_IP")
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -31,9 +32,9 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1", GLOBAL_HOST]
+ALLOWED_HOSTS = ["127.0.0.1", GLOBAL_HOST, IP_BASED_HOST]
 
-CSRF_TRUSTED_ORIGINS = [f"http://127.0.0.1", f"https://{GLOBAL_HOST}"]
+CSRF_TRUSTED_ORIGINS = [f"http://127.0.0.1", f"https://{GLOBAL_HOST}", f"http://{IP_BASED_HOST}"]
 
 # Application definition
 
