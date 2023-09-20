@@ -3,6 +3,13 @@ import json
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 
+from chat.models import Message, ChirrioUser
+
+
+async def save_message(email: str, text: str, time: str):
+    db_author = ChirrioUser.objects.get_by_natural_key(username=email)
+    db_message = Message()
+
 
 class ChatConsumer(WebsocketConsumer):
     def __init__(self, *args, **kwargs):
@@ -32,14 +39,18 @@ class ChatConsumer(WebsocketConsumer):
     def receive(self, text_data=None, bytes_data=None):
         print("Received new message:", text_data)
         text_data_json = json.loads(text_data)
+        content = text_data_json["content"]
+        author = text_data_json["author"]
+        time = text_data_json["timestamp"]
+        # save_message(author, content, time)
 
         # Send message to room group
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name, {
                 "type": "chat_message",
-                "content": text_data_json["content"],
-                "author": text_data_json["author"],
-                "timestamp": text_data_json["timestamp"]
+                "content": content,
+                "author": author,
+                "timestamp": time
             }
         )
 

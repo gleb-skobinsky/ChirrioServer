@@ -15,6 +15,7 @@ class UserAdmin(admin.ModelAdmin):
 class ChatRoomAdmin(admin.ModelAdmin):
     list_display = [
         "chatroom_uid",
+        "chatroom_name",
         "last_message",
         "last_sent_user_id",
     ]

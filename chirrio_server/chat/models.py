@@ -81,6 +81,7 @@ class ChatRoom(models.Model):
     chatroom_name = models.CharField(max_length=1024, default="")
     last_message = models.CharField(max_length=2048, default="")
     last_sent_user_id = models.ForeignKey(ChirrioUser, on_delete=models.PROTECT, default=1)
+    number_of_participants = models.IntegerField(default=1)
 
 
 class Message(models.Model):

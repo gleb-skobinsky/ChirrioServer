@@ -5,7 +5,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from chat.models import ChirrioUser
+
+from chat.models import ChirrioUser, ChatRoom
 
 
 def index(request: HttpRequest) -> JsonResponse:
@@ -71,6 +72,25 @@ class SignupView(APIView):
                     "accessToken": access_token,
                     "refreshToken": refresh_token
                 }
+            )
+        except KeyError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class CreateChatRoom(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        try:
+            print(request.data)
+            room_id = request.data["id"]
+            name = request.data["name"]
+            participants = request.data["users"]
+            new_room = ChatRoom.objects.create(chatroom_uid=room_id, chatroom_name=name,
+                                               number_of_participants=len(participants))
+            new_room.save()
+            return JsonResponse(
+                data=request.data
             )
         except KeyError:
             return Response(status=status.HTTP_400_BAD_REQUEST)
