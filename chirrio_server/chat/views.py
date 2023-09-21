@@ -24,17 +24,14 @@ class GetUser(APIView):
     def post(self, request):
         try:
             email = request.data["email"]
-            access = request.data["accessToken"]
-            refresh = request.data["refreshToken"]
+            access = request.data["access_token"]
+            refresh = request.data["refresh_token"]
             user = ChirrioUser.objects.get(email=email)
             return JsonResponse(
-                data={
-                    "email": user.email,
-                    "firstName": user.first_name,
-                    "lastName": user.last_name,
-                    "accessToken": access,
-                    "refreshToken": refresh
-                }
+                data=user.toJSON(
+                    access_token=access,
+                    refresh_token=refresh
+                )
             )
         except KeyError:
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -45,7 +42,7 @@ class LogoutView(APIView):
 
     def post(self, request):
         try:
-            refresh_token = request.data["refreshToken"]
+            refresh_token = request.data["refresh"]
             token = RefreshToken(refresh_token)
             token.blacklist()
             return Response(status=status.HTTP_205_RESET_CONTENT)
@@ -58,20 +55,17 @@ class SignupView(APIView):
     def post(self, request):
         try:
             email = request.data["email"]
-            first_name = request.data["firstName"]
-            last_name = request.data["lastName"]
+            first_name = request.data["first_name"]
+            last_name = request.data["last_name"]
             password = request.data["password"]
             user = ChirrioUser.objects.create_user(email=email, first_name=first_name, last_name=last_name,
                                                    password=password)
             access_token, refresh_token = get_tokens_for_user(user)
             return JsonResponse(
-                data={
-                    "email": user.email,
-                    "firstName": user.first_name,
-                    "lastName": user.last_name,
-                    "accessToken": access_token,
-                    "refreshToken": refresh_token
-                }
+                data=user.toJSON(
+                    access_token=access_token,
+                    refresh_token=refresh_token
+                )
             )
         except KeyError:
             return Response(status=status.HTTP_400_BAD_REQUEST)
@@ -109,7 +103,6 @@ class RequestRoomsByUser(APIView):
         try:
             user = ChirrioUser.objects.get_by_natural_key(request.data["email"])
             participants = ChatRoomParticipant.objects.filter(user_id=user)
-            print(participants)
             chat_rooms = [participant.chatroom_id.pk for participant in participants]
             rooms = [room.toJSON() for room in ChatRoom.objects.filter(pk__in=chat_rooms)]
             return JsonResponse(

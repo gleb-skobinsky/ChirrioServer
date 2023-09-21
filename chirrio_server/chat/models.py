@@ -75,6 +75,15 @@ class ChirrioUser(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
+    def toJSON(self, access_token: str = "", refresh_token: str = "") -> dict:
+        return {
+            "email": self.email,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "access_token": access_token,
+            "refresh_token": refresh_token
+        }
+
 
 class ChatRoom(models.Model):
     chatroom_uid = models.CharField(max_length=36, default=str(uuid4()))
@@ -88,6 +97,7 @@ class ChatRoom(models.Model):
             "chatroom_uid": self.chatroom_uid,
             "chatroom_name": self.chatroom_name,
             "last_message": self.last_message,
+            "last_sent_user_id": self.last_sent_user_id.toJSON(),
             "number_of_participants": self.number_of_participants
         }
 
