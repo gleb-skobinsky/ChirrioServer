@@ -108,6 +108,14 @@ class Message(models.Model):
     text = models.CharField(max_length=2048, default="")
     created_at = models.DateTimeField(auto_now=True)
 
+    def toJSON(self):
+        return {
+            "chatroom_id": self.chatroom_id.chatroom_uid,
+            "user_id": self.user_id.email,
+            "text": self.text,
+            "timestamp": str(self.created_at)
+        }
+
 
 class ChatRoomParticipant(models.Model):
     user_id = models.ForeignKey(ChirrioUser, on_delete=models.CASCADE, default=1)

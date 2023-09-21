@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from chat.models import ChirrioUser, ChatRoom, ChatRoomParticipant
+from chat.models import (ChirrioUser, ChatRoom, ChatRoomParticipant, Message)
 
 
 def index(request: HttpRequest) -> JsonResponse:
@@ -108,6 +108,23 @@ class RequestRoomsByUser(APIView):
             return JsonResponse(
                 data={
                     "rooms": rooms
+                }
+            )
+        except KeyError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class RequestMessagesByRoom(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        try:
+            chat_room = ChatRoom.objects.get(chatroom_uid=request.data["room_id"])
+            messages = [message.toJSON() for message in
+                        Message.objects.filter(chatroom_id=chat_room).order_by("-created_at")]
+            return JsonResponse(
+                data={
+                    "messages": messages
                 }
             )
         except KeyError:
