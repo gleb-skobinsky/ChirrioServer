@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from chat.models import ChirrioUser, ChatRoom
+from chat.models import ChirrioUser, ChatRoom, ChatRoomParticipant
 
 
 def index(request: HttpRequest) -> JsonResponse:
@@ -82,15 +82,40 @@ class CreateChatRoom(APIView):
 
     def post(self, request):
         try:
-            print(request.data)
             room_id = request.data["id"]
             name = request.data["name"]
             participants = request.data["users"]
             new_room = ChatRoom.objects.create(chatroom_uid=room_id, chatroom_name=name,
                                                number_of_participants=len(participants))
             new_room.save()
+            chatroom_users = ChirrioUser.objects.filter(email__in=participants)
+            for user in chatroom_users:
+                db_participant = ChatRoomParticipant.objects.create(
+                    user_id=user,
+                    chatroom_id=new_room
+                )
+                db_participant.save()
             return JsonResponse(
                 data=request.data
+            )
+        except KeyError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class RequestRoomsByUser(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        try:
+            user = ChirrioUser.objects.get_by_natural_key(request.data["email"])
+            participants = ChatRoomParticipant.objects.filter(user_id=user)
+            print(participants)
+            chat_rooms = [participant.chatroom_id.pk for participant in participants]
+            rooms = [room.toJSON() for room in ChatRoom.objects.filter(pk__in=chat_rooms)]
+            return JsonResponse(
+                data={
+                    "rooms": rooms
+                }
             )
         except KeyError:
             return Response(status=status.HTTP_400_BAD_REQUEST)

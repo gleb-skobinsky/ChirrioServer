@@ -83,6 +83,14 @@ class ChatRoom(models.Model):
     last_sent_user_id = models.ForeignKey(ChirrioUser, on_delete=models.PROTECT, default=1)
     number_of_participants = models.IntegerField(default=1)
 
+    def toJSON(self):
+        return {
+            "chatroom_uid": self.chatroom_uid,
+            "chatroom_name": self.chatroom_name,
+            "last_message": self.last_message,
+            "number_of_participants": self.number_of_participants
+        }
+
 
 class Message(models.Model):
     chatroom_id = models.ForeignKey(ChatRoom, on_delete=models.PROTECT, default=1)
