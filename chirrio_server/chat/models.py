@@ -111,7 +111,7 @@ class Message(models.Model):
     def toJSON(self):
         return {
             "chatroom_id": self.chatroom_id.chatroom_uid,
-            "user_id": self.user_id.email,
+            "user_id": self.user_id.toJSON(),
             "text": self.text,
             "timestamp": str(self.created_at)
         }

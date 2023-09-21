@@ -45,7 +45,7 @@ class ChatConsumer(WebsocketConsumer):
         content = text_data_json["content"]
         author = text_data_json["author"]
         time = text_data_json["timestamp"]
-        save_message(room, author, content, time)
+        save_message(room, author["email"], content, time)
 
         # Send message to room group
         async_to_sync(self.channel_layer.group_send)(

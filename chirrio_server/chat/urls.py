@@ -2,7 +2,7 @@ from django.urls import path
 from rest_framework_simplejwt import views as jwt_views
 
 from chat.views import (index, LogoutView, GetUser, SignupView, CreateChatRoom, RequestRoomsByUser,
-                        RequestMessagesByRoom)
+                        RequestMessagesByRoom, SearchUsers)
 
 urlpatterns = [
     path("", index),
@@ -17,5 +17,6 @@ urlpatterns = [
          name="token_refresh"),
     path("new-room/", CreateChatRoom.as_view(), name="create new room"),
     path("rooms-by-user/", RequestRoomsByUser.as_view(), name="request rooms by user"),
-    path("messages-by-room/", RequestMessagesByRoom.as_view(), name="request messages by room")
+    path("messages-by-room/", RequestMessagesByRoom.as_view(), name="request messages by room"),
+    path("user-search/", SearchUsers.as_view(), name="search users")
 ]

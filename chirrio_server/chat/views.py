@@ -129,3 +129,17 @@ class RequestMessagesByRoom(APIView):
             )
         except KeyError:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class SearchUsers(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        try:
+            users = [user.toJSON() for user in ChirrioUser.objects.filter(email__icontains=request.data["email"])]
+            print(users)
+            return JsonResponse({
+                "users": users
+            })
+        except KeyError:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
