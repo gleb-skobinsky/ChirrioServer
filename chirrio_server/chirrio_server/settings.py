@@ -34,7 +34,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", GLOBAL_HOST, IP_BASED_HOST]
 
-CSRF_TRUSTED_ORIGINS = ["http://localhost", f"http://127.0.0.1", f"https://{GLOBAL_HOST}", f"http://{IP_BASED_HOST}"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost", "http://127.0.0.1", f"https://{GLOBAL_HOST}", f"http://{IP_BASED_HOST}"]
 
 # Application definition
 
@@ -88,7 +88,6 @@ WSGI_APPLICATION = "chirrio_server.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-"""
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
@@ -107,7 +106,7 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-
+"""
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
