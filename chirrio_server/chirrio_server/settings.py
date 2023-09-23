@@ -32,9 +32,14 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", GLOBAL_HOST, IP_BASED_HOST]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", GLOBAL_HOST, IP_BASED_HOST, os.environ.get("FRONTEND_HOST")]
 
-CSRF_TRUSTED_ORIGINS = ["http://localhost", "http://127.0.0.1", f"https://{GLOBAL_HOST}", f"http://{IP_BASED_HOST}"]
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost",
+    "http://127.0.0.1",
+    f"https://{GLOBAL_HOST}",
+    f"http://{IP_BASED_HOST}"
+]
 
 # Application definition
 
