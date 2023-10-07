@@ -3,14 +3,14 @@ from django.http.response import JsonResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
-from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from chat.models import (ChirrioUser, ChatRoom, ChatRoomParticipant, Message)
-from chat.serializers import UserRequestSerializer, UserResponseSerializer, MessageSerializer, MessageResponseSerializer
+from chat.serializers import UserResponseSerializer, MessageSerializer, MessageResponseSerializer, \
+    ChatRoomResponseSerializer, ChatRoomsForUserSerializer, LogoutSerializer, SignupSerializer, \
+    UserAfterSignupSerializer
 
 
 def index(request: HttpRequest) -> JsonResponse:
@@ -28,16 +28,67 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserResponseSerializer
 
     @swagger_auto_schema(
-        request_body=UserRequestSerializer,
+        manual_parameters=[
+            openapi.Parameter(
+                "email",
+                openapi.IN_PATH,
+                description="Email to search for users",
+                type=openapi.TYPE_STRING
+            )
+        ],
         responses={200: UserResponseSerializer()}
     )
-    def retrieve(self, request):
-        serializer = UserRequestSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        email = serializer.validated_data['email']
+    def retrieve(self, request, *args, **kwargs):
+        email = self.kwargs["email"]
         user = ChirrioUser.objects.get(email=email)
         response_serializer = UserResponseSerializer(user)
         return Response(response_serializer.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        request_body=LogoutSerializer,
+        responses={205: ""}
+    )
+    def destroy(self, request, *args, **kwargs):
+        refresh_token = LogoutSerializer(request.data).refresh
+        token = RefreshToken(refresh_token)
+        token.blacklist()
+        return Response(status=status.HTTP_205_RESET_CONTENT)
+
+    @swagger_auto_schema(
+        request_body=SignupSerializer,
+        responses={200: UserAfterSignupSerializer()}
+    )
+    def create(self, request, *args, **kwargs):
+        serializer = SignupSerializer(request.data)
+        serializer.is_valid(raise_exception=True)
+        user = ChirrioUser.objects.create_user(email=serializer.email, first_name=serializer.first_name,
+                                               last_name=serializer.last_name,
+                                               password=serializer.password)
+        access_token, refresh_token = get_tokens_for_user(user)
+        response_serializer = UserAfterSignupSerializer(
+            email=user.email,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            access_token=access_token,
+            refresh_token=refresh_token
+        )
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                "email",
+                openapi.IN_PATH,
+                description="Rooms for user",
+                type=openapi.TYPE_STRING
+            )
+        ],
+        responses={200: UserResponseSerializer()}
+    )
+    def list(self, request, *args, **kwargs):
+        email = self.kwargs["email"]
+        users = ChirrioUser.objects.filter(email__icontains=email)
+        return Response(UserResponseSerializer(users, many=True).data, status=status.HTTP_200_OK)
 
 
 class MessagesViewSet(viewsets.ModelViewSet):
@@ -64,92 +115,42 @@ class MessagesViewSet(viewsets.ModelViewSet):
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
 
-class LogoutView(APIView):
+class ChatRoomViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
+    queryset = ChatRoom.objects.all()
+    serializer_class = ChatRoomResponseSerializer
 
-    def post(self, request):
-        try:
-            refresh_token = request.data["refresh"]
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-            return Response(status=status.HTTP_205_RESET_CONTENT)
-        except Exception:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-class SignupView(APIView):
-
-    def post(self, request):
-        try:
-            email = request.data["email"]
-            first_name = request.data["first_name"]
-            last_name = request.data["last_name"]
-            password = request.data["password"]
-            user = ChirrioUser.objects.create_user(email=email, first_name=first_name, last_name=last_name,
-                                                   password=password)
-            access_token, refresh_token = get_tokens_for_user(user)
-            return JsonResponse(
-                data=user.toJSON(
-                    access_token=access_token,
-                    refresh_token=refresh_token
-                )
+    def create(self, request, *args, **kwargs):
+        serializer = ChatRoomResponseSerializer(request.data)
+        serializer.is_valid(raise_exception=True)
+        users = serializer.users
+        new_room = ChatRoom.objects.create(chatroom_uid=serializer.id, chatroom_name=serializer.name,
+                                           number_of_participants=len(users))
+        new_room.save()
+        chatroom_users = ChirrioUser.objects.filter(email__in=users)
+        for user in chatroom_users:
+            db_participant = ChatRoomParticipant.objects.create(
+                user_id=user,
+                chatroom_id=new_room
             )
-        except KeyError:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            db_participant.save()
+        return Response(ChatRoomResponseSerializer(request.data).data, status=status.HTTP_200_OK)
 
-
-class CreateChatRoom(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def post(self, request):
-        try:
-            room_id = request.data["id"]
-            name = request.data["name"]
-            participants = request.data["users"]
-            new_room = ChatRoom.objects.create(chatroom_uid=room_id, chatroom_name=name,
-                                               number_of_participants=len(participants))
-            new_room.save()
-            chatroom_users = ChirrioUser.objects.filter(email__in=participants)
-            for user in chatroom_users:
-                db_participant = ChatRoomParticipant.objects.create(
-                    user_id=user,
-                    chatroom_id=new_room
-                )
-                db_participant.save()
-            return JsonResponse(
-                data=request.data
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                "email",
+                openapi.IN_PATH,
+                description="Rooms for user",
+                type=openapi.TYPE_STRING
             )
-        except KeyError:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-class RequestRoomsByUser(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def post(self, request):
-        try:
-            user = ChirrioUser.objects.get_by_natural_key(request.data["email"])
-            participants = ChatRoomParticipant.objects.filter(user_id=user)
-            chat_rooms = [participant.chatroom_id.pk for participant in participants]
-            rooms = [room.toJSON() for room in ChatRoom.objects.filter(pk__in=chat_rooms)]
-            return JsonResponse(
-                data={
-                    "rooms": rooms
-                }
-            )
-        except KeyError:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-class SearchUsers(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def post(self, request):
-        try:
-            users = [user.toJSON() for user in ChirrioUser.objects.filter(email__icontains=request.data["email"])]
-            print(users)
-            return JsonResponse({
-                "users": users
-            })
-        except KeyError:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        ],
+        responses={200: ChatRoomsForUserSerializer(many=True)}
+    )
+    def list(self, request, *args, **kwargs):
+        email = self.kwargs["email"]
+        user = ChirrioUser.objects.get_by_natural_key(email)
+        participants = ChatRoomParticipant.objects.filter(user_id=user)
+        chat_room_ids = [participant.chatroom_id.pk for participant in participants]
+        chat_rooms = ChatRoom.objects.filter(pk__in=chat_room_ids)
+        return Response(ChatRoomsForUserSerializer(chat_rooms, many=True).data, status=status.HTTP_200_OK)
