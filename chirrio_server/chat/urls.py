@@ -1,13 +1,13 @@
 from django.urls import path
 from rest_framework_simplejwt import views as jwt_views
 
-from chat.views import (index, LogoutView, GetUser, SignupView, CreateChatRoom, RequestRoomsByUser,
-                        RequestMessagesByRoom, SearchUsers)
+from chat.views import (index, LogoutView, SignupView, CreateChatRoom, RequestRoomsByUser,
+                        RequestMessagesByRoom, SearchUsers, UserViewSet)
 
 urlpatterns = [
     path("", index),
     path("logout/", LogoutView.as_view(), name="logout"),
-    path("user/", GetUser.as_view(), name="get user"),
+    path("user/", UserViewSet.as_view({'post': 'retrieve'}), name="get user v2"),
     path("signup/", SignupView.as_view(), name="sign up"),
     path("token/",
          jwt_views.TokenObtainPairView.as_view(),

@@ -6,7 +6,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as lazy
 
 
-class CustomUserManager(BaseUserManager):
+class ChirrioUserManager(BaseUserManager):
     """
     Custom user model manager where email is the unique identifiers
     for authentication instead of usernames.
@@ -70,7 +70,7 @@ class ChirrioUser(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
-    objects = CustomUserManager()
+    objects = ChirrioUserManager()
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"

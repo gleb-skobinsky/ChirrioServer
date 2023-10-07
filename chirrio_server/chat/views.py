@@ -1,14 +1,14 @@
 from django.http.request import HttpRequest
 from django.http.response import JsonResponse
-from rest_framework import status
-from rest_framework.generics import GenericAPIView
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from chat.models import (ChirrioUser, ChatRoom, ChatRoomParticipant, Message)
-from chat.schemas import GetUserSchema
+from chat.serializers import UserRequestSerializer, UserResponseSerializer
 
 
 def index(request: HttpRequest) -> JsonResponse:
@@ -20,24 +20,22 @@ def get_tokens_for_user(user):
     return str(refresh), str(refresh.access_token)
 
 
-class GetUser(GenericAPIView):
+class UserViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
-    schema = GetUserSchema()
+    queryset = ChirrioUser.objects.all()
+    serializer_class = UserResponseSerializer
 
-    def post(self, request):
-        try:
-            email = request.data["email"]
-            access = request.data["access_token"]
-            refresh = request.data["refresh_token"]
-            user = ChirrioUser.objects.get(email=email)
-            return JsonResponse(
-                data=user.toJSON(
-                    access_token=access,
-                    refresh_token=refresh
-                )
-            )
-        except KeyError:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+    @swagger_auto_schema(
+        request_body=UserRequestSerializer,
+        responses={200: UserResponseSerializer()}
+    )
+    def retrieve(self, request, pk=None):
+        serializer = UserRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+        user = ChirrioUser.objects.get(email=email)
+        response_serializer = UserResponseSerializer(user)
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
 
 
 class LogoutView(APIView):
