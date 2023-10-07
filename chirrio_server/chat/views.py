@@ -1,14 +1,16 @@
 from django.http.request import HttpRequest
 from django.http.response import JsonResponse
+from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from chat.models import (ChirrioUser, ChatRoom, ChatRoomParticipant, Message)
-from chat.serializers import UserRequestSerializer, UserResponseSerializer
+from chat.serializers import UserRequestSerializer, UserResponseSerializer, MessageSerializer, MessageResponseSerializer
 
 
 def index(request: HttpRequest) -> JsonResponse:
@@ -29,12 +31,36 @@ class UserViewSet(viewsets.ModelViewSet):
         request_body=UserRequestSerializer,
         responses={200: UserResponseSerializer()}
     )
-    def retrieve(self, request, pk=None):
+    def retrieve(self, request):
         serializer = UserRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data['email']
         user = ChirrioUser.objects.get(email=email)
         response_serializer = UserResponseSerializer(user)
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
+
+
+class MessagesViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    queryset = Message.objects.all()
+    serializer_class = MessageSerializer
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                "room_id",
+                openapi.IN_PATH,
+                description="Room id for messages",
+                type=openapi.TYPE_STRING
+            )
+        ],
+        responses={200: MessageResponseSerializer(many=True)}
+    )
+    def list(self, request, *args, **kwargs):
+        room_id = self.kwargs["room_id"]
+        db_room = ChatRoom.objects.get(chatroom_uid=room_id)
+        messages = Message.objects.select_related().filter(chatroom_id=db_room)
+        response_serializer = MessageResponseSerializer(messages, many=True)
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
 
@@ -109,23 +135,6 @@ class RequestRoomsByUser(APIView):
             return JsonResponse(
                 data={
                     "rooms": rooms
-                }
-            )
-        except KeyError:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-class RequestMessagesByRoom(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def post(self, request):
-        try:
-            chat_room = ChatRoom.objects.get(chatroom_uid=request.data["room_id"])
-            messages = [message.toJSON() for message in
-                        Message.objects.filter(chatroom_id=chat_room).order_by("-created_at")]
-            return JsonResponse(
-                data={
-                    "messages": messages
                 }
             )
         except KeyError:
