@@ -1,12 +1,14 @@
 from django.http.request import HttpRequest
 from django.http.response import JsonResponse
 from rest_framework import status
+from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from chat.models import (ChirrioUser, ChatRoom, ChatRoomParticipant, Message)
+from chat.schemas import GetUserSchema
 
 
 def index(request: HttpRequest) -> JsonResponse:
@@ -18,8 +20,9 @@ def get_tokens_for_user(user):
     return str(refresh), str(refresh.access_token)
 
 
-class GetUser(APIView):
+class GetUser(GenericAPIView):
     permission_classes = (IsAuthenticated,)
+    schema = GetUserSchema()
 
     def post(self, request):
         try:
