@@ -83,7 +83,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 type=openapi.TYPE_STRING
             )
         ],
-        responses={200: UserResponseSerializer()}
+        responses={200: UserResponseSerializer(many=True)}
     )
     def list(self, request, *args, **kwargs):
         email = self.kwargs["email"]
