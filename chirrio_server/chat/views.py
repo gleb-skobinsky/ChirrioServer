@@ -13,7 +13,7 @@ from chat.serializers import UserResponseSerializer, MessageSerializer, MessageR
     UserAfterSignupSerializer
 
 
-def index(request: HttpRequest) -> JsonResponse:
+def index(_: HttpRequest) -> JsonResponse:
     return JsonResponse(data={"message": "Hello world"})
 
 
@@ -23,9 +23,16 @@ def get_tokens_for_user(user):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
     queryset = ChirrioUser.objects.all()
     serializer_class = UserResponseSerializer
+
+    def get_permissions(self):
+        if self.action == "create":
+            self.permission_classes = []
+        else:
+            self.permission_classes = [IsAuthenticated, ]
+
+        return super(UserViewSet, self).get_permissions()
 
     @swagger_auto_schema(
         manual_parameters=[
@@ -49,7 +56,7 @@ class UserViewSet(viewsets.ModelViewSet):
         responses={205: ""}
     )
     def destroy(self, request, *args, **kwargs):
-        refresh_token = LogoutSerializer(request.data).refresh
+        refresh_token = LogoutSerializer(request.data).data["refresh"]
         token = RefreshToken(refresh_token)
         token.blacklist()
         return Response(status=status.HTTP_205_RESET_CONTENT)
@@ -59,18 +66,22 @@ class UserViewSet(viewsets.ModelViewSet):
         responses={200: UserAfterSignupSerializer()}
     )
     def create(self, request, *args, **kwargs):
-        serializer = SignupSerializer(request.data)
+        serializer = SignupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = ChirrioUser.objects.create_user(email=serializer.email, first_name=serializer.first_name,
-                                               last_name=serializer.last_name,
-                                               password=serializer.password)
+        post = serializer.data
+        user = ChirrioUser.objects.create_user(
+            email=post["email"],
+            first_name=post["first_name"],
+            last_name=post["last_name"],
+            password=post["password"]
+        )
         access_token, refresh_token = get_tokens_for_user(user)
         response_serializer = UserAfterSignupSerializer(
-            email=user.email,
-            first_name=user.first_name,
-            last_name=user.last_name,
-            access_token=access_token,
-            refresh_token=refresh_token
+            {"email": user.email,
+             "first_name": user.first_name,
+             "last_name": user.last_name,
+             "access_token": access_token,
+             "refresh_token": refresh_token}
         )
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -121,11 +132,14 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
     serializer_class = ChatRoomResponseSerializer
 
     def create(self, request, *args, **kwargs):
-        serializer = ChatRoomResponseSerializer(request.data)
+        serializer = ChatRoomResponseSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        users = serializer.users
-        new_room = ChatRoom.objects.create(chatroom_uid=serializer.id, chatroom_name=serializer.name,
-                                           number_of_participants=len(users))
+        users = serializer.data["users"]
+        new_room = ChatRoom.objects.create(
+            chatroom_uid=serializer.data["id"],
+            chatroom_name=serializer.data["name"],
+            number_of_participants=len(users)
+        )
         new_room.save()
         chatroom_users = ChirrioUser.objects.filter(email__in=users)
         for user in chatroom_users:

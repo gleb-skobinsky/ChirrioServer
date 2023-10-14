@@ -75,15 +75,6 @@ class ChirrioUser(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
-    def toJSON(self, access_token: str = "", refresh_token: str = "") -> dict:
-        return {
-            "email": self.email,
-            "first_name": self.first_name,
-            "last_name": self.last_name,
-            "access_token": access_token,
-            "refresh_token": refresh_token
-        }
-
 
 class ChatRoom(models.Model):
     chatroom_uid = models.CharField(max_length=36, default=str(uuid4()))
@@ -92,29 +83,12 @@ class ChatRoom(models.Model):
     last_sent_user_id = models.ForeignKey(ChirrioUser, on_delete=models.PROTECT, default=1)
     number_of_participants = models.IntegerField(default=1)
 
-    def toJSON(self):
-        return {
-            "chatroom_uid": self.chatroom_uid,
-            "chatroom_name": self.chatroom_name,
-            "last_message": self.last_message,
-            "last_sent_user_id": self.last_sent_user_id.toJSON(),
-            "number_of_participants": self.number_of_participants
-        }
-
 
 class Message(models.Model):
     chatroom_id = models.ForeignKey(ChatRoom, on_delete=models.PROTECT, default=1)
     user_id = models.ForeignKey(ChirrioUser, on_delete=models.PROTECT, default=1)
     text = models.CharField(max_length=2048, default="")
     created_at = models.DateTimeField(auto_now=True)
-
-    def toJSON(self):
-        return {
-            "chatroom_id": self.chatroom_id.chatroom_uid,
-            "user_id": self.user_id.toJSON(),
-            "text": self.text,
-            "timestamp": str(self.created_at)
-        }
 
 
 class ChatRoomParticipant(models.Model):
