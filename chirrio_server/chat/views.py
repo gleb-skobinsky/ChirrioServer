@@ -168,3 +168,19 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         chat_room_ids = [participant.chatroom_id.pk for participant in participants]
         chat_rooms = ChatRoom.objects.filter(pk__in=chat_room_ids)
         return Response(ChatRoomsForUserSerializer(chat_rooms, many=True).data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                "room_id",
+                openapi.IN_PATH,
+                description="Id of the room to get",
+                type=openapi.TYPE_STRING
+            )
+        ],
+        responses={200: UserResponseSerializer()}
+    )
+    def retrieve(self, request, *args, **kwargs):
+        chat = ChatRoom.objects.get(chatroom_uid=self.kwargs["room_id"])
+        response_serializer = ChatRoomsForUserSerializer(chat)
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
