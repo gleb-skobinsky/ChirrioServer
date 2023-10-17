@@ -41,10 +41,12 @@ class ChatConsumer(WebsocketConsumer):
     def receive(self, text_data=None, bytes_data=None):
         print("Received new message:", text_data)
         text_data_json = json.loads(text_data)
-        room = text_data_json["roomId"]
-        content = text_data_json["content"]
-        author = text_data_json["author"]
-        time = text_data_json["timestamp"]
+        room = text_data_json["chatroom_id"]
+        content = text_data_json["text"]
+        author = text_data_json["user_id"]
+        time = text_data_json["created_at"]
+        print("Message time!")
+        print(time)
         save_message(room, author["email"], content, time)
 
         # Send message to room group
