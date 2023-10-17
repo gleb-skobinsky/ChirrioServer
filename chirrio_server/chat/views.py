@@ -121,7 +121,7 @@ class MessagesViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         room_id = self.kwargs["room_id"]
         db_room = ChatRoom.objects.get(chatroom_uid=room_id)
-        messages = Message.objects.select_related().filter(chatroom_id=db_room).order_by('created_at')
+        messages = Message.objects.select_related().filter(chatroom_id=db_room).order_by('-created_at')
         response_serializer = MessageResponseSerializer(messages, many=True)
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
