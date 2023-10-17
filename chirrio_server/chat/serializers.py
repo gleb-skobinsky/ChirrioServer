@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from drf_yasg.utils import swagger_serializer_method
 from rest_framework import serializers
 
@@ -46,7 +48,7 @@ class MessageResponseSerializer(serializers.Serializer):
     chatroom_id = serializers.SerializerMethodField()
     user_id = serializers.SerializerMethodField()
     text = serializers.CharField()
-    created_at = serializers.CharField()
+    created_at = serializers.DateTimeField()
 
     @swagger_serializer_method(serializer_or_field=UserResponseSerializer)
     def get_user_id(self, obj):
@@ -54,6 +56,11 @@ class MessageResponseSerializer(serializers.Serializer):
 
     def get_chatroom_id(self, obj):
         return obj.chatroom_id.chatroom_uid
+
+    def get_created_at(self, obj):
+        created_at = obj.created_at
+        formatted_date = datetime.strftime(created_at, '%Y-%m-%dT%H:%M:%S.%fZ')
+        return formatted_date
 
 
 class StringListField(serializers.ListField):

@@ -2,14 +2,20 @@ import json
 
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
+from datetime import datetime
+from django.utils import timezone
 
 from chat.models import Message, ChirrioUser, ChatRoom
+
+DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 
 def save_message(room: str, email: str, text: str, time: str) -> None:
     db_author = ChirrioUser.objects.get_by_natural_key(username=email)
+    datetime_sent = datetime.strptime(time, '%Y-%m-%dT%H:%M:%S.%fZ')
+    datetime_sent = timezone.make_aware(datetime_sent, timezone.utc)
     db_room = ChatRoom.objects.get(chatroom_uid=room)
-    db_message = Message.objects.create(chatroom_id=db_room, user_id=db_author, text=text)
+    db_message = Message.objects.create(chatroom_id=db_room, user_id=db_author, text=text, created_at=datetime_sent)
     db_message.save()
 
 
@@ -39,24 +45,21 @@ class ChatConsumer(WebsocketConsumer):
 
     # Receive message from WebSocket
     def receive(self, text_data=None, bytes_data=None):
-        print("Received new message:", text_data)
         text_data_json = json.loads(text_data)
         room = text_data_json["chatroom_id"]
         content = text_data_json["text"]
         author = text_data_json["user_id"]
         time = text_data_json["created_at"]
-        print("Message time!")
-        print(time)
         save_message(room, author["email"], content, time)
 
         # Send message to room group
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_id, {
                 "type": "chat_message",
-                "room_id": room,
-                "content": content,
-                "author": author,
-                "timestamp": time
+                "chatroom_id": room,
+                "text": content,
+                "user_id": author,
+                "created_at": time
             }
         )
 
@@ -64,6 +67,6 @@ class ChatConsumer(WebsocketConsumer):
     def chat_message(self, event):
         # Send message to WebSocket
         self.send(text_data=json.dumps(
-            {"content": event["content"], "roomId": event["room_id"], "author": event["author"],
-             "timestamp": event["timestamp"]})
+            {"text": event["text"], "chatroom_id": event["chatroom_id"], "user_id": event["user_id"],
+             "created_at": event["created_at"]})
         )
