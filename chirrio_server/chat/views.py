@@ -178,7 +178,7 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
                 type=openapi.TYPE_STRING
             )
         ],
-        responses={200: UserResponseSerializer()}
+        responses={200: ChatRoomsForUserSerializer()}
     )
     def retrieve(self, request, *args, **kwargs):
         chat = ChatRoom.objects.get(chatroom_uid=self.kwargs["room_id"])

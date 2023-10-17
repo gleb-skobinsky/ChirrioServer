@@ -13,7 +13,7 @@ urlpatterns = [
 
     path("rooms/create/", ChatRoomViewSet.as_view({"post": "create"}), name="create new room"),
     path("rooms/<str:email>/", ChatRoomViewSet.as_view({"get": "list"}), name="request rooms by user"),
-    path("rooms/<str:room_id>/", ChatRoomViewSet.as_view({"get": "retrieve"}), name="request room by id"),
+    path("rooms/get/<str:room_id>/", ChatRoomViewSet.as_view({"get": "retrieve"}), name="request room by id"),
 
     path("users/logout/", UserViewSet.as_view({"post": "destroy"}), name="logout"),
     path("users/signup/", UserViewSet.as_view({"post": "create"}), name="sign up"),
