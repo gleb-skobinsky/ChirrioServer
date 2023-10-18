@@ -59,14 +59,18 @@ class ChatConsumer(WebsocketConsumer):
                 "chatroom_id": room,
                 "text": content,
                 "user_id": author,
-                "created_at": time
+                "created_at": time,
+                'sender_channel_name': self.channel_name
             }
         )
 
     # Receive message from room group
     def chat_message(self, event):
-        # Send message to WebSocket
-        self.send(text_data=json.dumps(
-            {"text": event["text"], "chatroom_id": event["chatroom_id"], "user_id": event["user_id"],
-             "created_at": event["created_at"]})
+        if self.channel_name != event.get('sender_channel_name'):
+            self.send(text_data=json.dumps(
+                {"text": event["text"],
+                 "chatroom_id": event["chatroom_id"],
+                 "user_id": event["user_id"],
+                 "created_at": event["created_at"]}
+            )
         )
