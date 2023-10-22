@@ -1,9 +1,12 @@
+import os.path
 from uuid import uuid4
 
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from django.utils.translation import gettext_lazy as lazy
+
+from chirrio_server.settings import MEDIA_ROOT
 
 
 class ChirrioUserManager(BaseUserManager):
@@ -64,6 +67,7 @@ class ChirrioUser(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=100, default="")
     last_name = models.CharField(max_length=200, default="")
     email = models.EmailField(lazy("email address"), unique=True)
+    image = models.ImageField(default=os.path.join(MEDIA_ROOT, "default_user.svg"))
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 

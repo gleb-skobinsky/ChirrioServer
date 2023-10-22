@@ -21,6 +21,7 @@ class UserResponseSerializer(serializers.Serializer):
     email = serializers.EmailField()
     first_name = serializers.CharField()
     last_name = serializers.CharField()
+    image = serializers.ImageField()
 
 
 class UserAfterSignupSerializer(UserResponseSerializer):
