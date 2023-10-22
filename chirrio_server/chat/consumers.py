@@ -9,10 +9,20 @@ from chat.models import Message, ChirrioUser, ChatRoom
 
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
+def fix_date_string(date: str) -> str:
+    delimiter = date.rfind(".")
+    left_string = date[:delimiter]
+    right_string = date[delimiter:]
+    if len(right_string) < 9:
+        return date
+    else:
+        right_string = right_string[:7]
+        return left_string + right_string + "Z"
+
 
 def save_message(room: str, email: str, text: str, time: str) -> None:
     db_author = ChirrioUser.objects.get_by_natural_key(username=email)
-    datetime_sent = datetime.strptime(time, '%Y-%m-%dT%H:%M:%S.%fZ')
+    datetime_sent = datetime.strptime(time, DATETIME_FORMAT)
     datetime_sent = timezone.make_aware(datetime_sent, timezone.utc)
     db_room = ChatRoom.objects.get(chatroom_uid=room)
     db_message = Message.objects.create(chatroom_id=db_room, user_id=db_author, text=text, created_at=datetime_sent)
@@ -49,7 +59,7 @@ class ChatConsumer(WebsocketConsumer):
         room = text_data_json["chatroom_id"]
         content = text_data_json["text"]
         author = text_data_json["user_id"]
-        time = text_data_json["created_at"]
+        time = fix_date_string(text_data_json["created_at"])
         save_message(room, author["email"], content, time)
 
         # Send message to room group
