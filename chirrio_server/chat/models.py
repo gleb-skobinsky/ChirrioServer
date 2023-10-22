@@ -67,7 +67,7 @@ class ChirrioUser(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=100, default="")
     last_name = models.CharField(max_length=200, default="")
     email = models.EmailField(lazy("email address"), unique=True)
-    image = models.ImageField(default=os.path.join(MEDIA_ROOT, "default_user.svg"))
+    image = models.ImageField(default="user.png")
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 

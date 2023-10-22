@@ -2,3 +2,4 @@ chirrio-venv/
 db.sqlite3
 .env
 mediafiles/
+!mediafiles/user.png
