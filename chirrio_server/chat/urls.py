@@ -23,6 +23,7 @@ urlpatterns = [
     path("users/refresh-token/",
          jwt_views.TokenRefreshView.as_view(),
          name="token_refresh"),
-    path("users/search/<str:email>/", UserViewSet.as_view({"get": "list"}), name="search users"),
+    path("users/search/<str:email>/", UserViewSet.as_view({"get": "search"}), name="search users"),
+    path("users/list/", UserViewSet.as_view({"get": "list"}), name="List users"),
     path("users/<str:email>/", UserViewSet.as_view({'get': 'retrieve'}), name="get user"),
 ]

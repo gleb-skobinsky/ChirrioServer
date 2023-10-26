@@ -3,6 +3,7 @@ from django.http.response import JsonResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -96,9 +97,25 @@ class UserViewSet(viewsets.ModelViewSet):
         ],
         responses={200: UserResponseSerializer(many=True)}
     )
-    def list(self, request, *args, **kwargs):
+    @action(detail=False, methods=['GET'])
+    def search(self, request, *args, **kwargs):
         email = self.kwargs["email"]
         users = ChirrioUser.objects.filter(email__icontains=email)
+        return Response(UserResponseSerializer(users, many=True).data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                "email",
+                openapi.IN_PATH,
+                description="List all users",
+                type=openapi.TYPE_STRING
+            )
+        ],
+        responses={200: UserResponseSerializer(many=True)}
+    )
+    def list(self, request, *args, **kwargs):
+        users = ChirrioUser.objects.all()[:100]
         return Response(UserResponseSerializer(users, many=True).data, status=status.HTTP_200_OK)
 
 
