@@ -74,13 +74,15 @@ class UserViewSet(viewsets.ModelViewSet):
             email=post["email"],
             first_name=post["first_name"],
             last_name=post["last_name"],
-            password=post["password"]
+            password=post["password"],
+            image=request.FILES.get('image')
         )
-        access_token, refresh_token = get_tokens_for_user(user)
+        refresh_token, access_token = get_tokens_for_user(user)
         response_serializer = UserAfterSignupSerializer(
             {"email": user.email,
              "first_name": user.first_name,
              "last_name": user.last_name,
+             "image": user.image,
              "access_token": access_token,
              "refresh_token": refresh_token}
         )
